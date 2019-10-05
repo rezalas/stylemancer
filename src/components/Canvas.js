@@ -10,9 +10,7 @@ class Canvas extends Component {
   saveContext(ctx) {
     this.ctx = ctx;
     this.width = this.ctx.canvas.width;
-    console.log(this.width);
     this.height = this.ctx.canvas.height;
-    console.log(this.height);
   }
 
   componentDidUpdate() {
@@ -23,7 +21,7 @@ class Canvas extends Component {
     this.ctx.fillStyle = this.props.player.color;
     this.ctx.fillRect(
       player.x,
-      this.height - player.height,
+      player.y,
       player.width,
       player.height
     );

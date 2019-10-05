@@ -7,7 +7,6 @@ class PureCanvas extends Component {
     return false;
   }
   render() {
-    console.log(window.innerHeight);
     return (
       <canvas
         ref={node =>
