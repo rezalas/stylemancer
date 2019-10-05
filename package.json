@@ -2,21 +2,8 @@
   "name": "stylemancer",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
-    "@emotion/core": "^10.0.20",
-    "react": "^16.10.2",
-    "react-dom": "^16.10.2",
-    "react-scripts": "3.2.0"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
+  "dependencies": {},
+  "eslintConfig": {},
   "browserslist": {
     "production": [
       ">0.2%",
