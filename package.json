@@ -1,19 +1,19 @@
 {
   "name": "stylemancer",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {},
-  "eslintConfig": {},
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+  "version": "1.0.0",
+  "description": "A CSS teaching tool and Metroidvania game, made for Ludum Dare #45.",
+  "main": "public/index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattdotam/stylemancer.git"
+  },
+  "author": "Matt Bear",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mattdotam/stylemancer/issues"
+  },
+  "homepage": "https://github.com/mattdotam/stylemancer#readme"
 }
