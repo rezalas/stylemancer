@@ -7,29 +7,37 @@
   window.requestAnimationFrame = requestAnimationFrame;
 })();
 
-let canvas,
+// Initial setup
+
+let canvas = document.getElementById("canvas"),
+  canvasContainer = document.getElementById("canvas-container"),
+  ctx = canvas.getContext("2d"),
   hud = document.getElementById("hud"),
-  ctx,
+  code = document.getElementById("code"),
+  submit = document.getElementById("submit"),
+  reset = document.getElementById("reset"),
   width,
   height,
-  lastWidth,
-  lastHeight,
+  lastWidth = canvas.width,
+  lastHeight = canvas.height,
   friction,
   gravity,
-  level = 2,
-  player = {},
+  level = 3,
+  player = {
+    x: canvas.width / 3,
+    y: canvas.height * -1,
+  },
   keys = [],
   boxes = [],
-  triggers = [];
+  triggers = [],
+  elements = [];
 
-canvas = document.getElementById("canvas");
-ctx = canvas.getContext("2d");
-
-player.x = canvas.width / 10;
-player.y = canvas.height * 0.01;
-
-lastWidth = canvas.width;
-lsatHeight = canvas.height;
+canvas.onclick = function() {
+  document.getElementById("code").value = "";
+  code.style.visibility = "hidden";
+  submit.style.visibility = "hidden";
+  reset.style.visibility = "hidden";
+};
 
 // Initialise last width and height to correct canvas dimensions
 if (window.innerWidth >= (window.innerHeight / 10) * 16) {
@@ -50,23 +58,46 @@ function canvasSetup() {
   }
   canvas.width = width;
   canvas.height = height;
+
   hud.setAttribute(
     "style",
     `width: ${canvas.width}px; height: ${(canvas.height / 67) *
       33}px; visibility: hidden;`
   );
-  // hud.setAttribute("style", ``);
+  code.style.visibility = "hidden";
+  submit.style.visibility = "hidden";
+  reset.style.visibility = "hidden";
   if (lastWidth !== canvas.width) {
     // Adjust player position, based on degree of screen resize
     player.x = Math.round((player.x * canvas.width) / lastWidth);
     player.y = Math.round((player.y * canvas.height) / lastHeight);
+    elementsSetup(
+      canvas.width / lastWidth,
+      canvas.height / lastHeight
+    );
     lastWidth = canvas.width;
     lastHeight = canvas.height;
   }
+  canvasContainer.style.width = `${canvas.width}px`;
+  canvasContainer.style.height = `${canvas.height}px`;
   return {
     width: window.innerWidth,
     height: window.innerHeight * 0.67,
   };
+}
+
+function elementsSetup(xResizeFactor, yResizeFactor) {
+  elements.map((e, i) => {
+    const el = document.getElementById(e);
+    w = parseFloat(el.style.width) * xResizeFactor;
+    h = parseFloat(el.style.height) * yResizeFactor;
+    x = parseFloat(el.style.left) * xResizeFactor;
+    y = parseFloat(el.style.top) * yResizeFactor;
+    el.style.width = `${w}px`;
+    el.style.height = `${h}px`;
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+  });
 }
 
 function physicsSetup() {
@@ -74,22 +105,21 @@ function physicsSetup() {
   gravity = canvas.width * 0.00035;
 }
 
+function box(x, y, w, h, c, e = null) {
+  return {
+    x: Math.round((width * x) / 100),
+    y: Math.round((height * y) / 100),
+    width: Math.round((width * w) / 100),
+    height: Math.round((height * h) / 100),
+    color: c,
+    effect: e,
+  };
+}
+
 function levelSetup(num) {
-  console.log(typeof num);
   typeof num === "number" ? (level = num) : (num = level);
   boxes = [];
   triggers = [];
-
-  function box(x, y, w, h, c, e = null) {
-    return {
-      x: Math.round((width * x) / 100),
-      y: Math.round((height * y) / 100),
-      width: Math.round((width * w) / 100),
-      height: Math.round((height * h) / 100),
-      color: c,
-      effect: e,
-    };
-  }
 
   switch (level) {
     case 0:
@@ -174,16 +204,66 @@ function levelSetup(num) {
       );
       boxes.push(box(0, 95, 100, 5, "black")); // ground
       boxes.push(box(0, 0, 1.5, 100, "black")); // left wall
-      boxes.push(box(98.5, 0, 1.5, 100, "black")); // left wall
+      boxes.push(box(98.5, 0, 1.5, 100, "black")); // right wall
       boxes.push(box(0, -10, 37.5, 12.5, "black")); // left platform
       boxes.push(box(62.5, -10, 37.5, 12.5, "black")); // right platform
       boxes.push(box(32.5, 85, 5, 5 / ((1 / 1.6) * 0.67), "black"));
       boxes.push(box(62.5, 85, 5, 5 / ((1 / 1.6) * 0.67), "black"));
+      boxes.push(box(75, 85, 15, 15 / ((1 / 1.6) * 0.67), "black"));
+      if (player.styles === true) {
+        triggers.push(
+          box(
+            81.5,
+            80 - 5 / ((1 / 1.6) * 0.67),
+            2,
+            2 / ((1 / 1.6) * 0.67),
+            "rgba(0,0,0,0)",
+            {
+              player: { x: 0 },
+              level: 4,
+            }
+          )
+        );
+      } else {
+        triggers.push(
+          box(
+            2.5,
+            85,
+            5,
+            5 / ((1 / 1.6) * 0.67),
+            "rgba(0, 0, 255, 1)",
+            {
+              styles: true,
+            }
+          )
+        );
+      }
+      break;
+    case 4:
+      boxes.push(box(0, 95, 100, 5, "#230c00")); // ground
+      boxes.push(box(0, 0, 100, 2.5, "#230c00")); //ceiling
+      boxes.push(box(0, 0, 2.5, 57.5, "#230c00"));
+      boxes.push(box(0, 85, 2.5, 42.5, "#230c00"));
+      boxes.push(box(2.5, 85, 5, 5 / ((1 / 1.6) * 0.67), "#230c00"));
+      boxes.push(box(97.5, 0, 2.5, 57.5, "#230c00"));
+      boxes.push(box(97.5, 85, 2.5, 42.5, "#230c00"));
+      boxes.push(box(92.5, 85, 5, 5 / ((1 / 1.6) * 0.67), "#230c00"));
+      boxes.push(box(50, 50, 25, 45, "purple"));
       triggers.push(
-        box(2.5, 85, 5, 5 / ((1 / 1.6) * 0.67), "rgba(0, 0, 0, 0)", {
-          styles: true,
+        box(-2.5, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: Math.round((width * 77.5) / 100) },
+          level: 3,
         })
       );
+      addElement({
+        tag: "div",
+        id: "guards",
+        code: ".guards {\n  background-color: purple;\n}",
+        answer: `.guards{background-color:red;}`,
+        dimensions: boxes[boxes.length - 1],
+        color: "rgba(0,0,0,0)",
+      });
+      break;
   }
 }
 function playerSetup() {
@@ -198,10 +278,11 @@ function playerSetup() {
     running: false,
     jumping: false,
     grounded: false,
-    styles: false,
     color: "#E6AC27",
   };
 }
+
+player.styles = false;
 
 canvasSetup();
 physicsSetup();
@@ -210,7 +291,10 @@ playerSetup();
 
 function update() {
   // check keys
-  if (player.frozen === false) {
+  if (
+    player.frozen === false &&
+    document.activeElement.id !== "code"
+  ) {
     if (keys[16]) {
       player.running = true;
       player.speed = canvas.width * 0.0045;
@@ -298,24 +382,102 @@ function update() {
         if (key === "styles") {
           styles = true;
           player.frozen = true;
+          triggers.shift();
           hud.setAttribute(
             "style",
             `width: ${canvas.width}px; height: ${(canvas.height /
               67) *
               33}px; visibility: visible;`
           );
-          triggers.shift();
-          window.setTimeout(unfreeze, 2500);
+          window.setTimeout(unlockStyle, 3500);
         }
       });
     }
   }
 
-  function unfreeze() {
+  function unlockStyle() {
     player.frozen = false;
+    player.styles = true;
+    // const newBox = boxes.push(
+    //   box(
+    //     77.5,
+    //     70 - 5 / ((1 / 1.6) * 0.67),
+    //     10,
+    //     10 / ((1 / 1.6) * 0.67),
+    //     "rgba(0,0,0,0)"
+    //   )
+    // );
+    // addElement({
+    //   tag: "div",
+    //   id: "grate",
+    //   dimensions: boxes[boxes.length - 1],
+    // });
+    triggers.push(
+      box(
+        81.5,
+        80 - 5 / ((1 / 1.6) * 0.67),
+        2,
+        2 / ((1 / 1.6) * 0.67),
+        "rgba(0,0,0,0)",
+        {
+          player: { x: 0 },
+          level: 4,
+        }
+      )
+    );
   }
 
   requestAnimationFrame(update);
+}
+
+function addElement(el) {
+  if (document.getElementById(`${el.id}`) === null) {
+    let newEl = document.createElement(el.tag);
+    const canvasContainer = document.getElementById(
+      "canvas-container"
+    );
+    canvasContainer.prepend(newEl);
+    newEl.setAttribute("id", `${el.id}`);
+    newEl.setAttribute(
+      "style",
+      `position: absolute; height: ${el.dimensions.height}px; width: ${el.dimensions.width}px; left: ${el.dimensions.x}px; top: ${el.dimensions.y}px; cursor: pointer; background-color: ${el.color}; z-index: 10;`
+    );
+    newEl.onclick = function() {
+      code.value = el.code;
+      code.name = el.id;
+      code.style.visibility = "visible";
+      submit.style.visibility = "visible";
+      submit.onclick = () =>
+        clickSubmit(el.id, el.answer, code.value);
+      reset.style.visibility = "visible";
+      reset.onclick = () => clickReset();
+    };
+    elements.push(newEl.id);
+  }
+}
+
+function clickSubmit(id, answer, value) {
+  console.log("---submit---");
+  // console.log("id: ", id);
+  // console.log("answer: ", strip(answer));
+  // console.log("value: ", strip(value));
+  console.log(strip(answer) === strip(value));
+  // console.log(typeof answer);
+  // console.log(typeof value);
+}
+
+function clickReset() {
+  console.log("reset");
+}
+
+function strip(text) {
+  let originalString = text;
+  const replace = originalString.replace(
+    /[\t\v\f\r\n \u00a0\u2000-\u200b\u2028-\u2029\u3000]+/g,
+    ""
+  );
+  console.log(replace);
+  return replace;
 }
 
 function colCheck(shapeA, shapeB) {

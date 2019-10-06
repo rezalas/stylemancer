@@ -11,8 +11,21 @@
     <title>Stylemancer</title>
   </head>
   <body>
-    <canvas id="canvas"> </canvas>
-    <div id="hud"></div>
+    <div id="canvas-container">
+      <canvas id="canvas"> </canvas>
+    </div>
+    <div id="hud">
+      <div id="panel">
+        <div id="left"></div>
+        <div id="right">
+          <div class="button-container">
+            <button id="submit" class="armlet-button"></button>
+            <button id="reset" class="armlet-button"></button>
+          </div>
+          <textarea id="code"></textarea>
+        </div>
+      </div>
+    </div>
     <script type="text/javascript" src="game/game.js"></script>
   </body>
 </html>
