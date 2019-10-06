@@ -16,7 +16,7 @@ let canvas,
   lastHeight,
   friction,
   gravity,
-  level = 0,
+  level = 2,
   player = {},
   keys = [],
   boxes = [],
@@ -53,7 +53,7 @@ function canvasSetup() {
   hud.setAttribute(
     "style",
     `width: ${canvas.width}px; height: ${(canvas.height / 67) *
-      33}px;`
+      33}px; visibility: hidden;`
   );
   // hud.setAttribute("style", ``);
   if (lastWidth !== canvas.width) {
@@ -71,11 +71,14 @@ function canvasSetup() {
 
 function physicsSetup() {
   friction = 0.8;
-  gravity = canvas.width * 0.0003;
+  gravity = canvas.width * 0.00035;
 }
 
-function levelSetup() {
+function levelSetup(num) {
+  console.log(typeof num);
+  typeof num === "number" ? (level = num) : (num = level);
   boxes = [];
+  triggers = [];
 
   function box(x, y, w, h, c, e = null) {
     return {
@@ -90,23 +93,97 @@ function levelSetup() {
 
   switch (level) {
     case 0:
+      canvas.setAttribute(
+        "style",
+        "background: -webkit-linear-gradient(to bottom right,#2c5364,#203a43,#0f2027); background: linear-gradient(to bottom right, #2c5364, #203a43, #0f2027);"
+      );
       boxes.push(box(0, 0, 1.5, 100, "black"));
       boxes.push(box(0, 95, 100, 5, "black"));
+      boxes.push(box(20, 0, 80, 2.5, "black"));
       boxes.push(box(97.5, 0, 2.5, 37.5, "black"));
       boxes.push(box(97.5, 65, 2.5, 42.5, "black"));
       boxes.push(box(40, 85, 5, 5 / ((1 / 1.6) * 0.67), "black"));
       boxes.push(box(65, 85, 5, 5 / ((1 / 1.6) * 0.67), "black"));
+      boxes.push(box(75, 85, 5, 5 / ((1 / 1.6) * 0.67), "black"));
       boxes.push(box(85, 65, 37.5, 42.5, "black"));
       boxes.push(box(80, 75, 37.5, 42.5, "black"));
       triggers.push(
-        box(102.5, 37.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", { level: 1 })
+        box(102.5, 37.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: 0 },
+          level: 1,
+        })
       );
       break;
     case 1:
-      player.x = 0;
+      canvas.setAttribute(
+        "style",
+        "background: -webkit-linear-gradient(to right,#203a43,#0f2027,#0d1c23); background: linear-gradient(to right,#203a43,#0f2027,#0d1c23);"
+      );
       boxes.push(box(0, 0, 2.5, 37.5, "black"));
       boxes.push(box(0, 65, 2.5, 42.5, "black"));
-      boxes.push(box(0, 95, 100, 5, "black"));
+      boxes.push(box(0, 0, 100, 2.5, "black")); //ceiling
+      boxes.push(box(0, 95, 100, 5, "black")); // ground
+      boxes.push(box(0, 65, 40, 42.5, "black")); // left platform
+      boxes.push(box(40, 75, 5, 42.5, "black"));
+      boxes.push(box(45, 85, 5, 5 / ((1 / 1.6) * 0.67), "black"));
+      boxes.push(box(60, 65, 40, 42.5, "black"));
+      boxes.push(box(97.5, 0, 2.5, 37.5, "black"));
+      boxes.push(box(97.5, 65, 2.5, 42.5, "black"));
+      triggers.push(
+        box(-2.5, 37.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: Math.round((width * 97.5) / 100) },
+          level: 0,
+        })
+      );
+      triggers.push(
+        box(102.5, 37.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: 0 },
+          level: 2,
+        })
+      );
+      break;
+    case 2:
+      canvas.setAttribute(
+        "style",
+        "background: -webkit-linear-gradient(to bottom right, #0d1c23, #091318); background: linear-gradient(to bottom right, #0d1c23, #091318);"
+      );
+      boxes.push(box(0, 0, 2.5, 37.5, "black"));
+      boxes.push(box(0, 65, 2.5, 42.5, "black"));
+      boxes.push(box(0, 0, 100, 2.5, "black")); //ceiling
+      boxes.push(box(0, 65, 37.5, 802.5, "black")); // left platform
+      boxes.push(box(62.5, 65, 37.5, 802.5, "black")); // right platform
+      boxes.push(box(97.5, 0, 2.5, 37.5, "black"));
+      boxes.push(box(97.5, 65, 2.5, 42.5, "black"));
+      triggers.push(
+        box(-2.5, 37.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: Math.round((width * 97.5) / 100) },
+          level: 1,
+        })
+      );
+      triggers.push(
+        box(0, 800, 100, 100, "rgba(0, 0, 0, 0)", {
+          player: { y: Math.round((width * -10) / 100), velY: 0 },
+          level: 3,
+        })
+      );
+      break;
+    case 3:
+      canvas.setAttribute(
+        "style",
+        "background: -webkit-linear-gradient(to bottom, #0d1c23, #060d10); background: linear-gradient(to bottom, #0d1c23, #060d10);"
+      );
+      boxes.push(box(0, 95, 100, 5, "black")); // ground
+      boxes.push(box(0, 0, 1.5, 100, "black")); // left wall
+      boxes.push(box(98.5, 0, 1.5, 100, "black")); // left wall
+      boxes.push(box(0, -10, 37.5, 12.5, "black")); // left platform
+      boxes.push(box(62.5, -10, 37.5, 12.5, "black")); // right platform
+      boxes.push(box(32.5, 85, 5, 5 / ((1 / 1.6) * 0.67), "black"));
+      boxes.push(box(62.5, 85, 5, 5 / ((1 / 1.6) * 0.67), "black"));
+      triggers.push(
+        box(2.5, 85, 5, 5 / ((1 / 1.6) * 0.67), "rgba(0, 0, 0, 0)", {
+          styles: true,
+        })
+      );
   }
 }
 function playerSetup() {
@@ -117,37 +194,49 @@ function playerSetup() {
     speed: canvas.width * 0.003,
     velX: 0,
     velY: 0,
+    frozen: false,
+    running: false,
     jumping: false,
     grounded: false,
+    styles: false,
     color: "#E6AC27",
   };
 }
 
 canvasSetup();
 physicsSetup();
-levelSetup();
+levelSetup(level);
 playerSetup();
 
 function update() {
   // check keys
-  if (keys[38] || keys[32] || keys[87]) {
-    // up arrow or space
-    if (!player.jumping && player.grounded) {
-      player.jumping = true;
-      player.grounded = false;
-      player.velY = -player.speed * 2; //how high to jump
+  if (player.frozen === false) {
+    if (keys[16]) {
+      player.running = true;
+      player.speed = canvas.width * 0.0045;
+    } else {
+      player.running = false;
+      player.speed = canvas.width * 0.003;
     }
-  }
-  if (keys[39] || keys[68]) {
-    // right arrow
-    if (player.velX < player.speed) {
-      player.velX += canvas.width * 0.001;
+    if (keys[38] || keys[32] || keys[87]) {
+      // up arrow or space
+      if (!player.jumping && player.grounded) {
+        player.jumping = true;
+        player.grounded = false;
+        player.velY = -player.speed * 2; //how high to jump
+      }
     }
-  }
-  if (keys[37] || keys[65]) {
-    // left arrow
-    if (player.velX > -player.speed) {
-      player.velX -= canvas.width * 0.001;
+    if (keys[39] || keys[68]) {
+      // right arrow
+      if (player.velX < player.speed) {
+        player.velX += canvas.width * 0.001;
+      }
+    }
+    if (keys[37] || keys[65]) {
+      // left arrow
+      if (player.velX > -player.speed) {
+        player.velX -= canvas.width * 0.001;
+      }
     }
   }
 
@@ -197,14 +286,33 @@ function update() {
   for (var j = 0; j < triggers.length; j++) {
     if (colCheck(player, triggers[j]) !== null) {
       Object.keys(triggers[j].effect).forEach((key, index) => {
-        switch (key) {
-          case "level":
-            level = triggers[j].effect[key];
-            levelSetup();
-            break;
+        if (key === "player") {
+          player = {
+            ...player,
+            ...triggers[j].effect[key],
+          };
+        }
+        if (key === "level") {
+          levelSetup(triggers[j].effect[key]);
+        }
+        if (key === "styles") {
+          styles = true;
+          player.frozen = true;
+          hud.setAttribute(
+            "style",
+            `width: ${canvas.width}px; height: ${(canvas.height /
+              67) *
+              33}px; visibility: visible;`
+          );
+          triggers.shift();
+          window.setTimeout(unfreeze, 2500);
         }
       });
     }
+  }
+
+  function unfreeze() {
+    player.frozen = false;
   }
 
   requestAnimationFrame(update);
