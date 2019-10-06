@@ -260,6 +260,11 @@ function levelSetup(num) {
         id: "guards",
         code: ".guards {\n  background-color: purple;\n}",
         answer: `.guards{background-color:red;}`,
+        onSuccess: function() {
+          document.getElementById("guards").remove();
+          boxes.pop();
+          elements.pop();
+        },
         dimensions: boxes[boxes.length - 1],
         color: "rgba(0,0,0,0)",
       });
@@ -447,8 +452,7 @@ function addElement(el) {
       code.name = el.id;
       code.style.visibility = "visible";
       submit.style.visibility = "visible";
-      submit.onclick = () =>
-        clickSubmit(el.id, el.answer, code.value);
+      submit.onclick = () => clickSubmit(el, code.value);
       reset.style.visibility = "visible";
       reset.onclick = () => clickReset();
     };
@@ -456,14 +460,13 @@ function addElement(el) {
   }
 }
 
-function clickSubmit(id, answer, value) {
-  console.log("---submit---");
-  // console.log("id: ", id);
-  // console.log("answer: ", strip(answer));
-  // console.log("value: ", strip(value));
-  console.log(strip(answer) === strip(value));
-  // console.log(typeof answer);
-  // console.log(typeof value);
+function clickSubmit(el, value) {
+  if (strip(el.answer) === strip(value)) {
+    el.onSuccess();
+    code.style.visibility = "hidden";
+    submit.style.visibility = "hidden";
+    reset.style.visibility = "hidden";
+  }
 }
 
 function clickReset() {
@@ -471,13 +474,10 @@ function clickReset() {
 }
 
 function strip(text) {
-  let originalString = text;
-  const replace = originalString.replace(
+  return text.replace(
     /[\t\v\f\r\n \u00a0\u2000-\u200b\u2028-\u2029\u3000]+/g,
     ""
   );
-  console.log(replace);
-  return replace;
 }
 
 function colCheck(shapeA, shapeB) {
