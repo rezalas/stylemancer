@@ -8,7 +8,6 @@
 })();
 
 // Initial setup
-
 let canvas = document.getElementById("canvas"),
   canvasContainer = document.getElementById("canvas-container"),
   ctx = canvas.getContext("2d"),
@@ -22,7 +21,7 @@ let canvas = document.getElementById("canvas"),
   lastHeight = canvas.height,
   friction,
   gravity,
-  level = 3,
+  level = 0,
   player = {
     x: canvas.width / 3,
     y: canvas.height * -1,
@@ -30,7 +29,35 @@ let canvas = document.getElementById("canvas"),
   keys = [],
   boxes = [],
   triggers = [],
-  elements = [];
+  elements = [],
+  sprites = [],
+  ticker = 0,
+  framecount = 0,
+  maxframes = 0;
+
+// images
+var images = {};
+
+loadImage("stylemancer-right");
+loadImage("stylemancer-left");
+loadImage("stylemancer-right-run-anim");
+loadImage("stylemancer-left-run-anim");
+loadImage("stylemancer-right-jumpcrouch");
+loadImage("stylemancer-left-jumpcrouch");
+loadImage("stylemancer-right-jumpair");
+loadImage("stylemancer-left-jumpair");
+loadImage("stylemancer-idle-right-anim");
+loadImage("stylemancer-idle-left-anim");
+loadImage("stylemancer-right-aloft");
+loadImage("stylemancer-left-aloft");
+loadImage("pipe-unlocked");
+loadImage("pipe-locked");
+
+function loadImage(name) {
+  images[name] = new Image();
+  images[name].onload = function() {};
+  images[name].src = `/public/img/${name}.png`;
+}
 
 canvas.onclick = function() {
   document.getElementById("code").value = "";
@@ -120,8 +147,9 @@ function levelSetup(num) {
   typeof num === "number" ? (level = num) : (num = level);
   boxes = [];
   triggers = [];
-  elements.map(e => document.getElementById(`e`).remove());
+  elements.map(e => document.getElementById(e).remove());
   elements = [];
+  sprites = [];
 
   switch (level) {
     case 0:
@@ -175,10 +203,7 @@ function levelSetup(num) {
       );
       break;
     case 2:
-      canvas.setAttribute(
-        "style",
-        "background: -webkit-linear-gradient(to bottom right, #0d1c23, #091318); background: linear-gradient(to bottom right, #0d1c23, #091318);"
-      );
+      canvas.setAttribute("style", "background-color: #0f2027;");
       boxes.push(box(0, 0, 2.5, 37.5, "black"));
       boxes.push(box(0, 65, 2.5, 42.5, "black"));
       boxes.push(box(0, 0, 100, 2.5, "black")); //ceiling
@@ -200,10 +225,7 @@ function levelSetup(num) {
       );
       break;
     case 3:
-      canvas.setAttribute(
-        "style",
-        "background: -webkit-linear-gradient(to bottom, #0d1c23, #060d10); background: linear-gradient(to bottom, #0d1c23, #060d10);"
-      );
+      canvas.setAttribute("style", "background-color: #0f2027;");
       boxes.push(box(0, 95, 100, 5, "black")); // ground
       boxes.push(box(0, 0, 1.5, 100, "black")); // left wall
       boxes.push(box(98.5, 0, 1.5, 100, "black")); // right wall
@@ -213,6 +235,13 @@ function levelSetup(num) {
       boxes.push(box(62.5, 85, 5, 5 / ((1 / 1.6) * 0.67), "black"));
       boxes.push(box(75, 85, 15, 15 / ((1 / 1.6) * 0.67), "black"));
       if (player.styles === true) {
+        sprites[0] = [
+          images["pipe-unlocked"],
+          75,
+          45,
+          15,
+          15 / ((1 / 1.6) * 0.67),
+        ];
         triggers.push(
           box(
             81.5,
@@ -227,6 +256,13 @@ function levelSetup(num) {
           )
         );
       } else {
+        sprites[0] = [
+          images["pipe-locked"],
+          75,
+          45,
+          15,
+          15 / ((1 / 1.6) * 0.67),
+        ];
         triggers.push(
           box(
             2.5,
@@ -293,7 +329,7 @@ function levelSetup(num) {
 
       triggers.push(
         box(-2.5, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
-          player: { x: Math.round((width * 95) / 100) },
+          player: { x: Math.round((width * 92.5) / 100) },
           level: 4,
         })
       );
@@ -301,7 +337,6 @@ function levelSetup(num) {
         tag: "div",
         id: "bridge",
         code: `.bridge {\n  width: ${boxes[boxes.length - 1].width}px;\n}`,
-        answer: `.bridge{background-color:red;}`,
         boxIndex: boxes.length - 1,
         boxVariable: "width",
         styleVariable: "width",
@@ -312,13 +347,6 @@ function levelSetup(num) {
           styleVariable,
           newValue
         ) {
-          console.log(
-            boxIndex,
-            boxVariable,
-            elementId,
-            styleVariable,
-            newValue
-          );
           const newValueInt = parseInt(newValue);
           boxes[boxIndex][boxVariable] = newValueInt;
           document.getElementById(`${elementId}`).style[
@@ -348,6 +376,69 @@ function levelSetup(num) {
         })
       );
       break;
+    case 6:
+      boxes.push(box(0, 95, 22.5, 800, "#704200")); // ground
+      boxes.push(box(77.5, 95, 22.5, 800, "#704200")); // ground
+      boxes.push(box(0, 0, 100, 2.5, "#704200")); //ceiling
+      boxes.push(box(0, 0, 2.5, 57.5, "#704200"));
+      boxes.push(box(0, 85, 2.5, 42.5, "#704200"));
+      boxes.push(box(2.5, 85, 20, 5 / ((1 / 1.6) * 0.67), "#704200"));
+      boxes.push(box(97.5, 0, 2.5, 57.5, "#704200"));
+      boxes.push(box(97.5, 85, 2.5, 42.5, "#704200"));
+      boxes.push(
+        box(77.5, 85, 22.5, 5 / ((1 / 1.6) * 0.67), "#704200")
+      );
+      boxes.push(box(22.5, 25, 55, 2.5, "orange")); // bridge
+
+      triggers.push(
+        box(-2.5, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: Math.round((width * 93) / 100) },
+          level: 5,
+        })
+      );
+      addElement({
+        tag: "div",
+        id: "bridge",
+        code: `.bridge {\n  top: ${boxes[boxes.length - 1].y}px;\n}`,
+        boxIndex: boxes.length - 1,
+        boxVariable: "y",
+        styleVariable: "top",
+        onAssign: function(
+          boxIndex,
+          boxVariable,
+          elementId,
+          styleVariable,
+          newValue
+        ) {
+          const newValueInt = parseInt(newValue);
+          boxes[boxIndex][boxVariable] = newValueInt;
+          document.getElementById(`${elementId}`).style[
+            styleVariable
+          ] = `${newValue}`;
+          elements[
+            elements.length - 1
+          ].code = `.bridge {\n  top: ${boxes[boxes.length - 1].y}px;\n}`;
+          code.value = `.bridge {\n  top: ${boxes[boxes.length - 1].y}px;\n}`;
+        },
+        dimensions: boxes[boxes.length - 1],
+        color: "rgba(0,0,0,0)",
+      });
+      triggers.push(
+        box(100, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: Math.round((width * 0) / 100) },
+          level: 7,
+        })
+      );
+      triggers.push(
+        box(0, 800, 100, 100, "rgba(0, 0, 0, 0)", {
+          player: {
+            x: Math.round((width * 10) / 100),
+            y: Math.round((width * 5) / 100),
+            velY: 0,
+          },
+        })
+      );
+      break;
   }
 }
 function playerSetup() {
@@ -358,6 +449,7 @@ function playerSetup() {
     speed: canvas.width * 0.003,
     velX: 0,
     velY: 0,
+    direction: "right",
     frozen: false,
     running: false,
     jumping: false,
@@ -374,6 +466,11 @@ levelSetup(level);
 playerSetup();
 
 function update() {
+  ticker++;
+  if (ticker >= 6) {
+    ticker = 0;
+    framecount++;
+  }
   // check keys
   if (
     player.frozen === false &&
@@ -398,12 +495,14 @@ function update() {
       // right arrow
       if (player.velX < player.speed) {
         player.velX += canvas.width * 0.001;
+        player.direction = "right";
       }
     }
     if (keys[37] || keys[65]) {
       // left arrow
       if (player.velX > -player.speed) {
         player.velX -= canvas.width * 0.001;
+        player.direction = "left";
       }
     }
   }
@@ -446,9 +545,65 @@ function update() {
   player.x += player.velX;
   player.y += player.velY;
 
-  // Player
-  ctx.fillStyle = player.color;
-  ctx.fillRect(player.x, player.y, player.width, player.height);
+  function draw(img) {
+    maxframes = Math.round(img.width / 62);
+    if (framecount >= maxframes) {
+      framecount = 0;
+    }
+    ctx.drawImage(
+      img,
+      framecount * 62,
+      0,
+      62,
+      124,
+      player.x,
+      player.y,
+      player.width,
+      player.height
+    );
+  }
+
+  // Draw Sprites
+  if (sprites.length > 0) {
+    sprites.map(s => {
+      ctx.drawImage(
+        s[0],
+        Math.round((width * s[1]) / 100),
+        Math.round((height * s[2]) / 100),
+        Math.round((width * s[3]) / 100),
+        Math.round((height * s[4]) / 100)
+      );
+    });
+  }
+
+  // Draw Player
+  // ctx.fillStyle = player.color;
+  // ctx.fillRect(player.x, player.y, player.width, player.height);
+  if (player.direction === "left") {
+    if (player.frozen === true) {
+      draw(images["stylemancer-left-aloft"]);
+    } else if (player.jumping === true) {
+      draw(images["stylemancer-left-jumpair"]);
+    } else {
+      if (Math.abs(player.velX) / player.speed >= 0.1) {
+        draw(images["stylemancer-left-run-anim"]);
+      } else {
+        draw(images["stylemancer-left"]);
+      }
+    }
+  } else {
+    if (player.frozen === true) {
+      draw(images["stylemancer-right-aloft"]);
+    } else if (player.jumping === true) {
+      draw(images["stylemancer-right-jumpair"]);
+    } else {
+      if (Math.abs(player.velX) / player.speed >= 0.1) {
+        draw(images["stylemancer-right-run-anim"]);
+      } else {
+        draw(images["stylemancer-right"]);
+      }
+    }
+  }
 
   // Check for trigger collisions
   for (var j = 0; j < triggers.length; j++) {
@@ -496,6 +651,13 @@ function update() {
     //   id: "grate",
     //   dimensions: boxes[boxes.length - 1],
     // });
+    sprites[0] = [
+      images["pipe-unlocked"],
+      75,
+      45,
+      15,
+      15 / ((1 / 1.6) * 0.67),
+    ];
     triggers.push(
       box(
         81.5,
