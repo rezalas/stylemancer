@@ -120,6 +120,8 @@ function levelSetup(num) {
   typeof num === "number" ? (level = num) : (num = level);
   boxes = [];
   triggers = [];
+  elements.map(e => document.getElementById(`e`).remove());
+  elements = [];
 
   switch (level) {
     case 0:
@@ -255,6 +257,12 @@ function levelSetup(num) {
           level: 3,
         })
       );
+      triggers.push(
+        box(100, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: Math.round((width * 0) / 100) },
+          level: 5,
+        })
+      );
       addElement({
         tag: "div",
         id: "guards",
@@ -268,6 +276,77 @@ function levelSetup(num) {
         dimensions: boxes[boxes.length - 1],
         color: "rgba(0,0,0,0)",
       });
+      break;
+    case 5:
+      boxes.push(box(0, 95, 22.5, 800, "#704200")); // ground
+      boxes.push(box(77.5, 95, 22.5, 800, "#704200")); // ground
+      boxes.push(box(0, 0, 100, 2.5, "#704200")); //ceiling
+      boxes.push(box(0, 0, 2.5, 57.5, "#704200"));
+      boxes.push(box(0, 85, 2.5, 42.5, "#704200"));
+      boxes.push(box(2.5, 85, 20, 5 / ((1 / 1.6) * 0.67), "#704200"));
+      boxes.push(box(97.5, 0, 2.5, 57.5, "#704200"));
+      boxes.push(box(97.5, 85, 2.5, 42.5, "#704200"));
+      boxes.push(
+        box(77.5, 85, 22.5, 5 / ((1 / 1.6) * 0.67), "#704200")
+      );
+      boxes.push(box(22.5, 85, 2.5, 2.5, "orange")); // bridge
+
+      triggers.push(
+        box(-2.5, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: Math.round((width * 95) / 100) },
+          level: 4,
+        })
+      );
+      addElement({
+        tag: "div",
+        id: "bridge",
+        code: `.bridge {\n  width: ${boxes[boxes.length - 1].width}px;\n}`,
+        answer: `.bridge{background-color:red;}`,
+        boxIndex: boxes.length - 1,
+        boxVariable: "width",
+        styleVariable: "width",
+        onAssign: function(
+          boxIndex,
+          boxVariable,
+          elementId,
+          styleVariable,
+          newValue
+        ) {
+          console.log(
+            boxIndex,
+            boxVariable,
+            elementId,
+            styleVariable,
+            newValue
+          );
+          const newValueInt = parseInt(newValue);
+          boxes[boxIndex][boxVariable] = newValueInt;
+          document.getElementById(`${elementId}`).style[
+            styleVariable
+          ] = `${newValue}`;
+          elements[
+            elements.length - 1
+          ].code = `.bridge {\n  width: ${boxes[boxes.length - 1].width}px;\n}`;
+          code.value = `.bridge {\n  width: ${boxes[boxes.length - 1].width}px;\n}`;
+        },
+        dimensions: boxes[boxes.length - 1],
+        color: "rgba(0,0,0,0)",
+      });
+      triggers.push(
+        box(100, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: Math.round((width * 0) / 100) },
+          level: 6,
+        })
+      );
+      triggers.push(
+        box(0, 800, 100, 100, "rgba(0, 0, 0, 0)", {
+          player: {
+            x: Math.round((width * 10) / 100),
+            y: Math.round((width * 5) / 100),
+            velY: 0,
+          },
+        })
+      );
       break;
   }
 }
@@ -454,23 +533,42 @@ function addElement(el) {
       submit.style.visibility = "visible";
       submit.onclick = () => clickSubmit(el, code.value);
       reset.style.visibility = "visible";
-      reset.onclick = () => clickReset();
+      reset.onclick = () => clickReset(el.code);
     };
     elements.push(newEl.id);
   }
 }
 
 function clickSubmit(el, value) {
-  if (strip(el.answer) === strip(value)) {
-    el.onSuccess();
-    code.style.visibility = "hidden";
-    submit.style.visibility = "hidden";
-    reset.style.visibility = "hidden";
+  if (el.onSuccess !== undefined) {
+    if (strip(el.answer) === strip(value)) {
+      el.onSuccess();
+      code.style.visibility = "hidden";
+      submit.style.visibility = "hidden";
+      reset.style.visibility = "hidden";
+    }
+  }
+  if (el.onAssign !== undefined) {
+    if (
+      strip(code.value).match(
+        new RegExp(el.styleVariable + ":(\\d*px);", "i")
+      )[1] !== undefined
+    ) {
+      el.onAssign(
+        el.boxIndex,
+        el.boxVariable,
+        el.id,
+        el.styleVariable,
+        strip(code.value).match(
+          new RegExp(el.styleVariable + ":(\\d*px);", "i")
+        )[1]
+      );
+    }
   }
 }
 
-function clickReset() {
-  console.log("reset");
+function clickReset(originalCode) {
+  code.value = originalCode;
 }
 
 function strip(text) {
