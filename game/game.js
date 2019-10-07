@@ -7,6 +7,11 @@
   window.requestAnimationFrame = requestAnimationFrame;
 })();
 
+document.getElementById("run").onclick = () => {
+  document.getElementById("intro").style.display = "none";
+  update();
+};
+
 // Initial setup
 let canvas = document.getElementById("canvas"),
   canvasContainer = document.getElementById("canvas-container"),
@@ -31,6 +36,7 @@ let canvas = document.getElementById("canvas"),
   triggers = [],
   elements = [],
   sprites = [],
+  strings = [],
   ticker = 0,
   framecount = 0,
   maxframes = 0;
@@ -38,6 +44,7 @@ let canvas = document.getElementById("canvas"),
 // images
 var images = {};
 
+loadImage("title");
 loadImage("stylemancer-right");
 loadImage("stylemancer-left");
 loadImage("stylemancer-right-run-anim");
@@ -52,11 +59,15 @@ loadImage("stylemancer-right-aloft");
 loadImage("stylemancer-left-aloft");
 loadImage("pipe-unlocked");
 loadImage("pipe-locked");
+loadImage("armlet");
+loadImage("guard-left");
+loadImage("css3-purple");
+loadImage("css3-red");
 
 function loadImage(name) {
   images[name] = new Image();
   images[name].onload = function() {};
-  images[name].src = `/public/img/${name}.png`;
+  images[name].src = `/img/${name}.png`;
 }
 
 canvas.onclick = function() {
@@ -150,6 +161,7 @@ function levelSetup(num) {
   elements.map(e => document.getElementById(e).remove());
   elements = [];
   sprites = [];
+  strings = [];
 
   switch (level) {
     case 0:
@@ -173,6 +185,13 @@ function levelSetup(num) {
           level: 1,
         })
       );
+      sprites[0] = [
+        images["title"],
+        25,
+        1,
+        70,
+        14.6 / ((1 / 1.6) * 0.67),
+      ];
       break;
     case 1:
       canvas.setAttribute(
@@ -263,6 +282,13 @@ function levelSetup(num) {
           15,
           15 / ((1 / 1.6) * 0.67),
         ];
+        sprites[1] = [
+          images["armlet"],
+          7,
+          90,
+          2,
+          2 / ((1 / 1.6) * 0.67),
+        ];
         triggers.push(
           box(
             2.5,
@@ -286,7 +312,11 @@ function levelSetup(num) {
       boxes.push(box(97.5, 0, 2.5, 57.5, "#230c00"));
       boxes.push(box(97.5, 85, 2.5, 42.5, "#230c00"));
       boxes.push(box(92.5, 85, 5, 5 / ((1 / 1.6) * 0.67), "#230c00"));
-      boxes.push(box(50, 50, 25, 45, "purple"));
+      boxes.push(box(50, 50, 25, 45, "rgba(0,0,0,0)"));
+      sprites.push([images["css3-purple"], 50, 50, 25, 45]);
+      strings.push(
+        "Halt! Oh, you have an armlet... Once you have red up on my background, you may pass."
+      );
       triggers.push(
         box(-2.5, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
           player: { x: Math.round((width * 77.5) / 100) },
@@ -299,6 +329,7 @@ function levelSetup(num) {
           level: 5,
         })
       );
+      sprites.push([images["guard-left"], 52, 75, 4, 20]);
       addElement({
         tag: "div",
         id: "guards",
@@ -308,6 +339,7 @@ function levelSetup(num) {
           document.getElementById("guards").remove();
           boxes.pop();
           elements.pop();
+          sprites[0][0] = images["css3-red"];
         },
         dimensions: boxes[boxes.length - 1],
         color: "rgba(0,0,0,0)",
@@ -326,6 +358,7 @@ function levelSetup(num) {
         box(77.5, 85, 22.5, 5 / ((1 / 1.6) * 0.67), "#704200")
       );
       boxes.push(box(22.5, 85, 2.5, 2.5, "orange")); // bridge
+      strings.push("Width great power, comes great responsibility.");
 
       triggers.push(
         box(-2.5, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
@@ -395,6 +428,79 @@ function levelSetup(num) {
           player: { x: Math.round((width * 93) / 100) },
           level: 5,
         })
+      );
+      strings.push(
+        "You're a double-crosser. Get it? Because we're both bridges? You get it."
+      );
+      addElement({
+        tag: "div",
+        id: "bridge",
+        code: `.bridge {\n  top: ${boxes[boxes.length - 1].y}px;\n}`,
+        boxIndex: boxes.length - 1,
+        boxVariable: "y",
+        styleVariable: "top",
+        onAssign: function(
+          boxIndex,
+          boxVariable,
+          elementId,
+          styleVariable,
+          newValue
+        ) {
+          const newValueInt = parseInt(newValue);
+          boxes[boxIndex][boxVariable] = newValueInt;
+          document.getElementById(`${elementId}`).style[
+            styleVariable
+          ] = `${newValue}`;
+          elements[
+            elements.length - 1
+          ].code = `.bridge {\n  top: ${boxes[boxes.length - 1].y}px;\n}`;
+          code.value = `.bridge {\n  top: ${boxes[boxes.length - 1].y}px;\n}`;
+        },
+        dimensions: boxes[boxes.length - 1],
+        color: "rgba(0,0,0,0)",
+      });
+      triggers.push(
+        box(100, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: Math.round((width * 0) / 100) },
+          level: 7,
+        })
+      );
+      triggers.push(
+        box(0, 800, 100, 100, "rgba(0, 0, 0, 0)", {
+          player: {
+            x: Math.round((width * 10) / 100),
+            y: Math.round((width * 5) / 100),
+            velY: 0,
+          },
+        })
+      );
+      break;
+    case 7:
+      boxes.push(box(0, 95, 100, 5, "#704200")); // ground
+      boxes.push(box(0, 0, 100, 2.5, "#704200")); //ceiling
+      boxes.push(box(0, 0, 2.5, 57.5, "#704200"));
+      boxes.push(box(0, 85, 2.5, 42.5, "#704200"));
+      boxes.push(box(2.5, 85, 20, 5 / ((1 / 1.6) * 0.67), "#704200"));
+      boxes.push(box(97.5, 0, 2.5, 100, "#704200"));
+
+      triggers.push(
+        box(-2.5, 57.5, 2.5, 27.5, "rgba(0, 0, 0, 0)", {
+          player: { x: Math.round((width * 93) / 100) },
+          level: 6,
+        })
+      );
+      strings.push(
+        "This is what I could complete in the Ludum Dare time limit. Thanks for playing!"
+      );
+      strings.push("");
+      strings.push(
+        "We all start with nothing. We all return to nothing. In these moments we can be something. What will you be?"
+      );
+      strings.push(
+        "It is better to create than to consume. The future belongs to the makers. What will you make?"
+      );
+      strings.push(
+        "To continue learning CSS, check out FreeCodeCamp.org."
       );
       addElement({
         tag: "div",
@@ -576,6 +682,20 @@ function update() {
     });
   }
 
+  // Draw Strings
+  if (strings.length > 0) {
+    strings.map((s, i) => {
+      ctx.font = `${canvas.width / 1000}rem Consolas, monospace`;
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        s,
+        canvas.width * 0.5,
+        canvas.height * 0.34 + canvas.height * 0.075 * i
+      );
+    });
+  }
+
   // Draw Player
   // ctx.fillStyle = player.color;
   // ctx.fillRect(player.x, player.y, player.width, player.height);
@@ -628,6 +748,7 @@ function update() {
               67) *
               33}px; visibility: visible;`
           );
+          sprites[1][2] -= 15;
           window.setTimeout(unlockStyle, 3500);
         }
       });
@@ -637,20 +758,6 @@ function update() {
   function unlockStyle() {
     player.frozen = false;
     player.styles = true;
-    // const newBox = boxes.push(
-    //   box(
-    //     77.5,
-    //     70 - 5 / ((1 / 1.6) * 0.67),
-    //     10,
-    //     10 / ((1 / 1.6) * 0.67),
-    //     "rgba(0,0,0,0)"
-    //   )
-    // );
-    // addElement({
-    //   tag: "div",
-    //   id: "grate",
-    //   dimensions: boxes[boxes.length - 1],
-    // });
     sprites[0] = [
       images["pipe-unlocked"],
       75,
@@ -658,6 +765,7 @@ function update() {
       15,
       15 / ((1 / 1.6) * 0.67),
     ];
+    sprites.pop();
     triggers.push(
       box(
         81.5,
@@ -791,5 +899,5 @@ window.addEventListener("resize", levelSetup);
 window.addEventListener("resize", playerSetup);
 
 window.addEventListener("load", function() {
-  update();
+  // update();
 });
